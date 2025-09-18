@@ -31,7 +31,7 @@ def get_data(IS_name):
     sf_report_url_accounts = sf_org + report_id_accounts + export_params
     response_accounts = requests.get(sf_report_url_accounts, headers=sf.headers, cookies={'sid': sf.session_id})
     report_accounts = response_accounts.content.decode('utf-8')
-    All_Accounts = pd.read_csv(StringIO(report_accounts))
+    All_Accounts = pd.read_csv(StringIO(report_accounts), dtype={'Main Phone': str, 'Main Fax': str})
     All_Accounts = All_Accounts[All_Accounts['Account ID'].map(lambda x: str(x)[0]) == '0']
     All_Accounts = All_Accounts.rename(columns={
         'Owner' : 'Account Owner',
@@ -215,3 +215,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
