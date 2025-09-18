@@ -136,7 +136,7 @@ def main():
                 value=('0%', '100%'))
         
         with col5:
-            target = st.slider("Call Target", 0, int(df['IS Target'].max()), (0, int(df['IS Target'].max())))
+            target = st.slider("Call Target", int(df['IS Target'].min()), int(df['IS Target'].max()), (int(df['IS Target'].min()), int(df['IS Target'].max())))
         
         with col6:
             st.write('')
@@ -213,4 +213,5 @@ def main():
                                 mime='application/vnd.ms-excel')
 
 if __name__ == "__main__":
+
     main()
