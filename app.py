@@ -31,7 +31,7 @@ def get_data(IS_name):
     sf_report_url_accounts = sf_org + report_id_accounts + export_params
     response_accounts = requests.get(sf_report_url_accounts, headers=sf.headers, cookies={'sid': sf.session_id})
     report_accounts = response_accounts.content.decode('utf-8')
-    All_Accounts = pd.read_csv(StringIO(report_accounts), dtype={'Main Phone': str, 'Main Fax': str})
+    All_Accounts = pd.read_csv(StringIO(report_accounts), dtype={'Main Phone': str})
     All_Accounts = All_Accounts[All_Accounts['Account ID'].map(lambda x: str(x)[0]) == '0']
     All_Accounts = All_Accounts.rename(columns={
         'Owner' : 'Account Owner',
@@ -50,13 +50,13 @@ def get_data(IS_name):
     orders = orders[orders['Account ID'].map(lambda x: str(x)[0]) == '0']
     
     visits = visits[visits['Assigned'] == IS_name]
-    visits['Date'] = visits['Date'].map(lambda x: pd.to_datetime(x))
+    visits['Date'] = visits['Date'].map(lambda x: pd.to_datetime(x, format='%d/%m/%Y'))
     visits_count = visits.groupby('Account ID').agg({'Date': 'nunique'}).reset_index()
     visits_count = visits_count.rename(columns={'Date': '# Calls'})
     visits_last = visits.groupby('Account ID').agg({'Date': 'max'}).reset_index()
     visits_last = visits_last.rename(columns={'Date': 'Last Call'})
 
-    orders['Date'] = orders['Date'].map(lambda x: pd.to_datetime(x))
+    orders['Date'] = orders['Date'].map(lambda x: pd.to_datetime(x, format='%d/%m/%Y'))
     orders_count = orders.groupby('Account ID').agg({'Visit Id': 'nunique'}).reset_index()
     orders_count = orders_count.rename(columns={'Visit Id': '# Orders'})
     orders_last = orders.groupby('Account ID').agg({'Date': 'max'}).reset_index()
@@ -69,23 +69,25 @@ def get_data(IS_name):
     All_Accounts = All_Accounts.merge(orders_count[['Account ID','# Orders']], on = 'Account ID', how = 'left') 
     All_Accounts['# Orders'] = All_Accounts['# Orders'].fillna(0)
     All_Accounts = All_Accounts.merge(orders_last[['Account ID','Last Order']], on = 'Account ID', how = 'left')
-    All_Accounts['Last Order'] = All_Accounts['Last Order'].map(lambda x: pd.to_datetime(x))
-    All_Accounts['Last Order'] = All_Accounts['Last Order'].dt.date 
-    All_Accounts['Last Order'] = All_Accounts['Last Order'].fillna(0)
 
     All_Accounts = All_Accounts.merge(visits_count[['Account ID','# Calls']], on = 'Account ID', how = 'left') 
     All_Accounts['# Calls'] = All_Accounts['# Calls'].fillna(0)
     All_Accounts = All_Accounts.merge(visits_last[['Account ID','Last Call']], on = 'Account ID', how = 'left') 
-    All_Accounts['Last Call'] = All_Accounts['Last Call'].map(lambda x: pd.to_datetime(x))
-    All_Accounts['Last Call'] = All_Accounts['Last Call'].dt.date
-    All_Accounts['Last Call'] = All_Accounts['Last Call'].fillna(0)
+    All_Accounts['Last Call new'] = All_Accounts['Last Call'].map(lambda x: pd.to_datetime(x))
+    All_Accounts['Last Call new'] = All_Accounts['Last Call new'].dt.date
+    All_Accounts['Last Call new'] = All_Accounts['Last Call new'].fillna(0)
     today = date.today()
-    All_Accounts['Days vo Calls'] = All_Accounts['Last Call'].map(lambda x: (today - pd.to_datetime(x).date()).days)
+    All_Accounts['Days vo Calls'] = All_Accounts['Last Call new'].map(lambda x: (today - pd.to_datetime(x).date()).days)
     
     All_Accounts['Call Rate'] = All_Accounts['# Calls'].map(lambda x: str(int(x))) + "/" + All_Accounts['IS Target'].map(lambda x: str(int(x)))
     All_Accounts['Coverage'] = All_Accounts['# Calls'] / All_Accounts['IS Target']
     All_Accounts['Called'] = All_Accounts['# Calls'].map(lambda x: "Yes" if x > 0 else "No")
     
+    All_Accounts['Last Call'] = All_Accounts['Last Call'].map(lambda x: str(x.date()).replace("/", "-"))
+    All_Accounts['Last Order'] = All_Accounts['Last Order'].map(lambda x: str(x.date()).replace("/", "-"))
+    All_Accounts['Last Call'] = All_Accounts['Last Call'].replace('NaT', '')
+    All_Accounts['Last Order'] = All_Accounts['Last Order'].replace('NaT', '')
+
     return All_Accounts
 
 def main():
@@ -172,7 +174,7 @@ def main():
         df_filtered = df_filtered[df_filtered['Days vo Calls'] > 90]
     df_filtered = df_filtered[['Account ID', 'Account Owner', 'IS', 'Account Name', 'Account Segment',
                                 'IS Target', '# Calls', 'Last Call', 'Call Rate', 'Coverage', 'Called',
-                                'Main Phone', 'Main Fax', 'Email', '# Orders', 'Last Order', 'Account Status', 'Call Status (Account)', 'Brick Code',
+                                'Main Phone', 'Email', '# Orders', 'Last Order', 'Account Status', 'Call Status (Account)', 'Brick Code',
                                 'Brick Description', 'Primary State/Province', 'Primary City', 'Primary Street']]
     
     #Display success graph
@@ -181,8 +183,8 @@ def main():
     hollowcolor = '#E2E2E2'
     size = 30
 
-    textvariable = int((df_filtered[df_filtered['# Calls']>0]['Account ID'].nunique()/df_filtered['Account ID'].nunique())*100)
-    arcvariable = (df_filtered[df_filtered['# Calls']>0]['Account ID'].nunique()/df_filtered['Account ID'].nunique())*220
+    textvariable = int((df_filtered[df_filtered['# Calls']>0]['Account ID'].nunique()/df_filtered['Account ID'].nunique())*100 if df_filtered['Account ID'].nunique()>0 else 0)
+    arcvariable = (df_filtered[df_filtered['# Calls']>0]['Account ID'].nunique()/df_filtered['Account ID'].nunique())*220 if df_filtered['Account ID'].nunique()>0 else 0
     if textvariable >=100:
         text_x = 380
         angle = 380
