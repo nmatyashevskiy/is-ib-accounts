@@ -57,8 +57,10 @@ def get_data(IS_name):
     visits_last = visits_last.rename(columns={'Date': 'Last Call'})
 
     orders['Date'] = orders['Date'].map(lambda x: pd.to_datetime(x, format='%d/%m/%Y'))
-    orders_count = orders.groupby('Account ID').agg({'Visit Id': 'nunique'}).reset_index()
-    orders_count = orders_count.rename(columns={'Visit Id': '# Orders'})
+    orders['Items Dropped'] = orders['Items Dropped'].fillna(0)
+    orders['Items Dropped'] = orders['Items Dropped'].astype(int)
+    orders_count = orders.groupby('Account ID').agg({'Visit Id': 'nunique', 'Items Dropped': 'sum'}).reset_index()
+    orders_count = orders_count.rename(columns={'Visit Id': '# Orders', 'Items Dropped': 'Meters Placed'})
     orders_last = orders.groupby('Account ID').agg({'Date': 'max'}).reset_index()
     orders_last = orders_last.rename(columns={'Date': 'Last Order'})
 
@@ -66,7 +68,7 @@ def get_data(IS_name):
     All_Accounts = All_Accounts.merge(Bricks[['Brick Code','IS']], on = 'Brick Code', how = 'left')
     All_Accounts = All_Accounts[All_Accounts['IS'] == IS_name]
     
-    All_Accounts = All_Accounts.merge(orders_count[['Account ID','# Orders']], on = 'Account ID', how = 'left') 
+    All_Accounts = All_Accounts.merge(orders_count[['Account ID','# Orders', 'Items Dropped']], on = 'Account ID', how = 'left') 
     All_Accounts['# Orders'] = All_Accounts['# Orders'].fillna(0)
     All_Accounts = All_Accounts.merge(orders_last[['Account ID','Last Order']], on = 'Account ID', how = 'left')
 
