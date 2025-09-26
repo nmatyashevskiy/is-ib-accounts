@@ -174,7 +174,8 @@ def main():
                      &(df['IS Target'] <= target[1])]
     df_filtered['Coverage'] = df_filtered['Coverage'] * 100
     df_filtered['Brick Code'] = df_filtered['Brick Code'].astype('str')
-    df_filtered['Meters Placed'] = df_filtered['Meters Placed'].astype(int).fillna(0)
+    df_filtered['Meters Placed'] = df_filtered['Meters Placed'].astype(int)
+    df_filtered['Meters Placed'] = df_filtered['Meters Placed'].fillna(0)
     if on:
         df_filtered = df_filtered[df_filtered['Days vo Calls'] > 90]
     df_filtered = df_filtered[['Account ID', 'Account Owner', 'IS', 'Account Name', 'Account Segment',
@@ -229,5 +230,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
