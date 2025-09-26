@@ -68,7 +68,7 @@ def get_data(IS_name):
     All_Accounts = All_Accounts.merge(Bricks[['Brick Code','IS']], on = 'Brick Code', how = 'left')
     All_Accounts = All_Accounts[All_Accounts['IS'] == IS_name]
     
-    All_Accounts = All_Accounts.merge(orders_count[['Account ID','# Orders', 'Items Dropped']], on = 'Account ID', how = 'left') 
+    All_Accounts = All_Accounts.merge(orders_count[['Account ID','# Orders', 'Meters Placed']], on = 'Account ID', how = 'left') 
     All_Accounts['# Orders'] = All_Accounts['# Orders'].fillna(0)
     All_Accounts = All_Accounts.merge(orders_last[['Account ID','Last Order']], on = 'Account ID', how = 'left')
 
@@ -178,7 +178,7 @@ def main():
         df_filtered = df_filtered[df_filtered['Days vo Calls'] > 90]
     df_filtered = df_filtered[['Account ID', 'Account Owner', 'IS', 'Account Name', 'Account Segment',
                                 'IS Target', '# Calls', 'Last Call', 'Call Rate', 'Coverage', 'Called',
-                                'Main Phone', 'Email', '# Orders', 'Last Order', 'Account Status', 'Call Status (Account)', 'Brick Code',
+                                'Main Phone', 'Email', '# Orders', 'Meters Placed', 'Last Order', 'Account Status', 'Call Status (Account)', 'Brick Code',
                                 'Brick Description', 'Primary State/Province', 'Primary City', 'Primary Street']]
     
     #Display success graph
@@ -228,3 +228,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
