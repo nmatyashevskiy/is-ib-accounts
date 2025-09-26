@@ -81,6 +81,8 @@ def get_data(IS_name):
     
     All_Accounts['Call Rate'] = All_Accounts['# Calls'].map(lambda x: str(int(x))) + "/" + All_Accounts['IS Target'].map(lambda x: str(int(x)))
     All_Accounts['Coverage'] = All_Accounts['# Calls'] / All_Accounts['IS Target']
+    All_Accounts['Coverage_tech'] = All_Accounts['# Calls'] / All_Accounts['IS Target']
+    All_Accounts.loc[All_Accounts['Coverage_tech'] > 1, 'Coverage_tech'] = 1
     All_Accounts['Called'] = All_Accounts['# Calls'].map(lambda x: "Yes" if x > 0 else "No")
     
     All_Accounts['Last Call'] = All_Accounts['Last Call'].map(lambda x: str(x.date()).replace("/", "-"))
@@ -165,7 +167,7 @@ def main():
     df_filtered = df[(df['Account Segment'].isin(account_segment_filter))
                      &(df['Called'].isin(called_filter))
                      &(df['Coverage'] >= int(start_coverage[:-1]) / 100)
-                     &(df['Coverage'] <= int(end_coverage[:-1]) / 100)
+                     &(df['Coverage_tech'] <= int(end_coverage[:-1]) / 100)
                      &(df['IS Target'] >= target[0])
                      &(df['IS Target'] <= target[1])]
     df_filtered['Coverage'] = df_filtered['Coverage'] * 100
@@ -208,7 +210,7 @@ def main():
     st.dataframe(df_filtered,
                 column_config={
                 'Coverage': st.column_config.NumberColumn(
-                     "Coverage",
+                     "Call Target Achievement",
                      help="The percentage value",
                      format="%.0f%%")},
                 hide_index=True)
